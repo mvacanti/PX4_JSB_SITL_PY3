@@ -19,8 +19,7 @@ class Simulator():
                             default='127.0.0.1:4560')
         parser.add_argument('--script', help='relative path to jsbsim script', default='data/hexarotor_test.xml')
         parser.add_argument('--options', help='jsbsim options', default=None)
-        parser.add_argument('--fgout', help='address used for UDP communication with flightgear, e.g. 127.0.0.1:5503',
-                            default='127.0.0.1:5550')  # 127.0.0.1:5550
+        parser.add_argument('--fgout', help='address used for UDP communication with flightgear, e.g. 127.0.0.1:5503')  # 127.0.0.1:5550
         args = parser.parse_args()
 
         inst = cls(sitl_address=args.master, fgout=args.fgout, script=args.script, options=args.options)
