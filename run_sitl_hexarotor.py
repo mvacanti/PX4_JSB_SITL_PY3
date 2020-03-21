@@ -112,7 +112,7 @@ class Simulator():
 
 
     def init_JSBSim(self):
-        cmd = "JSBSim --realtime  --suspend --simulation-rate=400  --script=%s --logdirectivefile=data/fgout.xml" % self.script
+        cmd = "JSBSim --realtime --nice  --suspend --simulation-rate=400  --script=%s --logdirectivefile=data/fgout.xml" % self.script
         jsb = pexpect.spawn(cmd, logfile=sys.stdout, timeout=10)
         jsb.delaybeforesend = 0
         util.pexpect_autoclose(jsb)
