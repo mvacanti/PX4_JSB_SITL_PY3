@@ -1,26 +1,25 @@
 #!/usr/bin/env python
 
-'''
-classes for aircraft model
-'''
+# Classes for aircraft model
 
-import time, struct, numpy
+import numpy
+import struct
+import time
 from math import sin, cos, sqrt
 
-from scipy.spatial.transform import Rotation as rot
-from constants import *
+from modules.constants import *
 
 
 class Controls(object):
 
-    def __init__(self, motor_0, motor_1, motor_2, motor_3, motor_4, motor_5, aux3, aux4,
+    def __init__(self, motor_0, motor_1, motor_2, motor_3, aux1, aux2, aux3, aux4,
                  mode, nav_mode):
         self.motor_0 = motor_0
         self.motor_1 = motor_1
         self.motor_2 = motor_2
         self.motor_3 = motor_3
-        self.motor_4 = motor_4
-        self.motor_5 = motor_5
+        self.aux1 = aux1
+        self.aux2 = aux2
         self.aux3 = aux3
         self.aux4 = aux4
         self.mode = mode
@@ -32,27 +31,23 @@ class Controls(object):
         return cls(time.time(), 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
     def send_to_jsbsim(self, jsb_console):
-        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[0]', self.motor_0/10))
+        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[0]', self.motor_0))
 
-        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[1]', self.motor_1/10))
+        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[1]', self.motor_1))
 
-        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[2]', self.motor_2/10))
+        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[2]', self.motor_2))
 
-        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[3]', self.motor_3/10))
-
-        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[4]', self.motor_4 / 10))
-
-        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[5]', self.motor_5 / 10))
+        jsb_console.send('set %s %s\n' % ('fcs/esc-cmd-norm[3]', self.motor_3))
 
     @classmethod
     def from_mavlink(cls, msg):
         return cls(
-            motor_0=float(msg.controls[0]*10),
-            motor_1=float(msg.controls[1]*10),
-            motor_2=float(msg.controls[2]*10),
-            motor_3=float(msg.controls[3]*10),
-            motor_4=float(msg.controls[4]*10),
-            motor_5=float(msg.controls[5]*10),
+            motor_0=float(msg.controls[0]),
+            motor_1=float(msg.controls[1]),
+            motor_2=float(msg.controls[2]),
+            motor_3=float(msg.controls[3]),
+            aux1=msg.controls[4],
+            aux2=msg.controls[5],
             aux3=msg.controls[6],
             aux4=msg.controls[7],
             mode=msg.mode,
@@ -136,9 +131,9 @@ class State(object):
         alt = fdm.get('altitude', units='meters')
 
         # attitude
-        phi = fdm.get('phi', units='radians') #yaw
-        theta = fdm.get('theta', units='radians') #pitch
-        psi = fdm.get('psi', units='radians') #roll
+        phi = fdm.get('phi', units='radians')
+        theta = fdm.get('theta', units='radians')
+        psi = fdm.get('psi', units='radians')
 
         # rotation rates
         phidot = fdm.get('phidot', units='rps')
@@ -153,34 +148,11 @@ class State(object):
         xacc = fdm.get('A_X_pilot', units='mpss')
         yacc = fdm.get('A_Y_pilot', units='mpss')
         zacc = fdm.get('A_Z_pilot', units='mpss')
-        """
-        ir_i = rot.from_euler('xyz', [psi, theta, phi])
-        racc = (xacc_i, yacc_i, zacc_i)
-        ir = ir_i.inv()
-        t = ir.apply(racc, inverse=False)
-        xacc = t[0]
-        yacc = t[1]
-        zacc = t[2]
-
-        acc_vect = rotmat.Vector3(xacc_i, yacc_i, zacc_i)
-        rotation = rotmat.Matrix3()
-        rotation.from_euler(psi, theta, phi)
-        rotation_t = rotation.transposed()
-
-        acc_x = rotation_t.a * acc_vect.x
-        acc_y = rotation_t.b * acc_vect.y
-        acc_z = rotation_t.c * acc_vect.z
-
-        xacc = acc_x.x + acc_x.y + acc_x.z
-        yacc = acc_y.x + acc_y.y + acc_y.z
-        zacc = acc_z.x + acc_z.y + acc_z.z
-        """
 
         # velocitiystate
         vN = fdm.get('v_north', units='mps')
         vE = fdm.get('v_east', units='mps')
         vD = fdm.get('v_down', units='mps')
-        #print 'vel: ', math.sqrt(vN*vN + vE*vE)
 
         return cls(time=time.time(),
                    phi=phi, theta=theta, psi=psi,

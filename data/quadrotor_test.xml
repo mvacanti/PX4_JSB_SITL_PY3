@@ -5,10 +5,10 @@
     name="Testing Hexarotor X">
 
   <description>
-      Test PX4 using EasyStar
+      Run PX4 SITL with Hexarotor.
   </description>
 
-  <use aircraft="hexarotor_x" initialize="reset"/>
+  <use aircraft="quadrotor_x" initialize="reset"/>
 
   <!-- we control the servos via the jsbsim console
        interface on TCP 5124 -->
@@ -20,7 +20,6 @@
     <event name="Repeating Notify" persistent="true">
       <description>Output message at 5 second intervals</description>
       <notify>
-        <property>fcs/esc-cmd-norm[5]</property>
         <property>fcs/net_torque</property>
       </notify>
       <condition> simulation/sim-time-sec >= simulation/notify-time-trigger </condition>

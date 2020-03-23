@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-'''
-classes for sensor models
-'''
+# classes for sensor models
 
-import struct, time, numpy
+import numpy
+import struct
+import time
 from math import sin, cos
-import noise
-from constants import *
+
+import modules.noise as noise
+from modules.constants import *
 
 
 def toint(num):
@@ -17,6 +18,7 @@ def toint(num):
         return 65535
     else:
         return int(num)
+
 
 class Imu(object):
 
@@ -42,7 +44,6 @@ class Imu(object):
         self.gyro_noise = noise.GaussianNoise(gyro_mean, gyro_var)
         self.mag_noise = noise.GaussianNoise(mag_mean, mag_var)
         self.baro_noise = noise.GaussianNoise(baro_mean, baro_var)
-
 
     def send_to_mav(self, mav):
         try:
@@ -139,7 +140,7 @@ class Gps(object):
 
     def send_to_mav(self, mav):
         try:
-            #see pymavlink hil_gps_send() definition and struct.pack()
+            # see pymavlink hil_gps_send() definition and struct.pack()
             # for encoding information.
             mav.hil_gps_send(int(self.time*sec2usec),
                              toint(self.fix_type),
@@ -150,7 +151,6 @@ class Gps(object):
                              int(self.vn*m2cm), int(self.ve*m2cm), int(self.vd*m2cm),
                              toint(self.cog*rad2deg*100),
                              toint(self.satellites_visible))
-            #print(str(self.alt))
         except struct.error as e:
             print('mav hil gps packet data exceeds int bounds')
             raise e

@@ -1,25 +1,33 @@
 import math
-from math import sqrt, acos, cos, pi, sin, atan2
-import os, pexpect, sys, time, random
-from rotmat import Vector3, Matrix3
-from subprocess import call, check_call,Popen, PIPE
+import os
+import pexpect
+import random
+import sys
+import time
+from math import sqrt, acos, cos, pi, atan2
+from subprocess import call, check_call, Popen, PIPE
+
 
 def m2ft(x):
-    '''meters to feet'''
+    # meters to feet
     return float(x) / 0.3048
 
+
 def ft2m(x):
-    '''feet to meters'''
+    # feet to meters
     return float(x) * 0.3048
+
 
 def kt2mps(x):
     return x * 0.514444444
 
+
 def mps2kt(x):
     return x / 0.514444444
 
+
 def topdir():
-    '''return top of git tree where hil is running from'''
+    # return top of git tree where hil is running from
     d = os.path.dirname(os.path.realpath(__file__))
     assert(os.path.basename(d)=='pysim')
     d = os.path.dirname(d)
@@ -29,13 +37,14 @@ def topdir():
     d = os.path.dirname(d)
     return d
 
+
 def reltopdir(path):
-    '''return a path relative to topdir()'''
+    # return a path relative to topdir()
     return os.path.normpath(os.path.join(topdir(), path))
 
 
 def run_cmd(cmd, dir=".", show=False, output=False, checkfail=True):
-    '''run a shell command'''
+    # run a shell command
     if show:
         print("Running: '%s' in '%s'" % (cmd, dir))
     if output:
@@ -45,38 +54,36 @@ def run_cmd(cmd, dir=".", show=False, output=False, checkfail=True):
     else:
         return call(cmd, shell=True, cwd=dir)
 
+
 def rmfile(path):
-    '''remove a file if it exists'''
+    # remove a file if it exists
     try:
         os.unlink(path)
     except Exception:
         pass
 
+
 def deltree(path):
-    '''delete a tree of files'''
+    # delete a tree of files
     run_cmd('rm -rf %s' % path)
 
 
-
 def build_SIL(atype, target='sitl'):
-    '''build desktop SIL'''
+    # build desktop SIL
     run_cmd("make clean %s" % target,
             dir=reltopdir(atype),
             checkfail=True)
     return True
 
+
 def build_AVR(atype, board='mega2560'):
-    '''build AVR binaries'''
+    # build AVR binaries
     config = open(reltopdir('config.mk'), mode='w')
-    config.write('''
-BOARD=%s
-PORT=/dev/null
-''' % board)
+    config.write('''BOARD=%s PORT=/dev/null''' % board)
     config.close()
     run_cmd("make clean", dir=reltopdir(atype),  checkfail=True)
     run_cmd("make", dir=reltopdir(atype),  checkfail=True)
     return True
-
 
 # list of pexpect children to close on exit
 close_list = []
@@ -210,49 +217,6 @@ def check_parent(parent_pid=os.getppid()):
         sys.exit(1)
 
 
-def EarthRatesToBodyRates(dcm, earth_rates):
-    '''convert the angular velocities from earth frame to
-    body frame. Thanks to James Goppert for the formula
-
-    all inputs and outputs are in radians
-
-    returns a gyro vector in body frame, in rad/s
-    '''
-    from math import sin, cos
-
-    (phi, theta, psi) = dcm.to_euler()
-    phiDot   = earth_rates.x
-    thetaDot = earth_rates.y
-    psiDot   = earth_rates.z
-
-    p = phiDot - psiDot*sin(theta)
-    q = cos(phi)*thetaDot + sin(phi)*psiDot*cos(theta)
-    r = cos(phi)*psiDot*cos(theta) - sin(phi)*thetaDot
-    return Vector3(p, q, r)
-
-def BodyRatesToEarthRates(dcm, gyro):
-    '''convert the angular velocities from body frame to
-    earth frame.
-
-    all inputs and outputs are in radians/s
-
-    returns a earth rate vector
-    '''
-    from math import sin, cos, tan, fabs
-
-    p      = gyro.x
-    q      = gyro.y
-    r      = gyro.z
-
-    (phi, theta, psi) = dcm.to_euler()
-
-    phiDot   = p + tan(theta)*(q*sin(phi) + r*cos(phi))
-    thetaDot = q*cos(phi) - r*sin(phi)
-    if fabs(cos(theta)) < 1.0e-20:
-        theta += 1.0e-10
-    psiDot   = (q*sin(phi) + r*cos(phi))/cos(theta)
-    return Vector3(phiDot, thetaDot, psiDot)
-
 def gps_newpos(lat, lon, bearing, distance):
     '''extrapolate latitude/longitude given a heading and distance 
     thanks to http://www.movable-type.co.uk/scripts/latlong.html
@@ -312,51 +276,6 @@ class Wind(object):
         speed = self.speed * math.fabs(self.turbulance_mul)
         return (speed, self.direction)
 
-
-    # Calculate drag.
-    def drag(self, velocity, deltat=None, testing=None):
-        '''return current wind force in Earth frame.  The velocity parameter is
-           a Vector3 of the current velocity of the aircraft in earth frame, m/s'''
-        from math import radians
-
-        # (m/s, degrees) : wind vector as a magnitude and angle.
-        (speed, direction) = self.current(deltat=deltat)
-        # speed = self.speed
-        # direction = self.direction
-
-        # Get the wind vector.
-        w = toVec(speed, radians(direction))
-
-        obj_speed = velocity.length()
-
-        # Compute the angle between the object vector and wind vector by taking
-        # the dot product and dividing by the magnitudes.
-        d = w.length() * obj_speed
-        if d == 0: 
-            alpha = 0
-        else: 
-            alpha = acos((w * velocity) / d)
-
-        # Get the relative wind speed and angle from the object.  Note that the
-        # relative wind speed includes the velocity of the object; i.e., there
-        # is a headwind equivalent to the object's speed even if there is no
-        # absolute wind.
-        (rel_speed, beta) = apparent_wind(speed, obj_speed, alpha)
-
-        # Return the vector of the relative wind, relative to the coordinate
-        # system.
-        relWindVec = toVec(rel_speed, beta + atan2(velocity.y, velocity.x))
-
-        # Combine them to get the acceleration vector.
-        return Vector3( acc(relWindVec.x, drag_force(self, relWindVec.x))
-                      , acc(relWindVec.y, drag_force(self, relWindVec.y))
-                      , 0 )
-
-# http://en.wikipedia.org/wiki/Apparent_wind
-#
-# Returns apparent wind speed and angle of apparent wind.  Alpha is the angle
-# between the object and the true wind.  alpha of 0 rads is a headwind; pi a
-# tailwind.  Speeds should always be positive.
 def apparent_wind(wind_sp, obj_speed, alpha):
     delta = wind_sp * cos(alpha)
     x = wind_sp**2 + obj_speed**2 + 2 * obj_speed * delta
@@ -389,14 +308,6 @@ def acc(val, mag):
         return mag
     else:
         return (val / abs(val)) * (0 - mag)
-
-# Converts a magnitude and angle (radians) to a vector in the xy plane.
-def toVec(magnitude, angle):
-    v = Vector3(magnitude, 0, 0)
-    m = Matrix3()
-    m.from_euler(0, 0, angle)
-    return m.transposed() * v
-
 
 if __name__ == "__main__":
     import doctest

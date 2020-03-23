@@ -1,17 +1,18 @@
 <?xml version="1.0"?>
 <!--
 ************************************************************************
-Hexarotor X UAV Model
+Quadrotor X UAV Model
 ************************************************************************
 -->
+
 <PropertyList>
   <sim>
-    <description>Hexarotor X</description>
+    <description>Quadrotor X</description>
     <author>Matt Vacanti</author>
     <aircraft-version>0.0</aircraft-version>
     <status>experimental</status>
     <flight-model>jsb</flight-model>
-    <aero>hexarotor_x</aero>
+    <aero>quadrotor_x</aero>
     <model-hz>50</model-hz>
     <sound>
       <path>Aircraft/Generic/generic-sound.xml</path>
@@ -20,20 +21,20 @@ Hexarotor X UAV Model
       <visibility archive="n">false</visibility>
     </panel>
     <model>
-      <path archive="y">Aircraft/hexarotor_x/Models/hexarotor_x.xml</path>
+      <path archive="y">Aircraft/quadrotor_x/Models/quadrotor_x.xml</path>
     </model>
     <view>
       <internal archive="y">true</internal>
       <config>
         <x-offset-m archive="y">0.0</x-offset-m>
-        <y-offset-m archive="y">0.23</y-offset-m>
-        <z-offset-m archive="y">-0.90</z-offset-m>
+        <y-offset-m archive="y">0.0</y-offset-m>
+        <z-offset-m archive="y">-0.345</z-offset-m>
         <pitch-offset-deg>0</pitch-offset-deg>
       </config>
     </view>
-    <chase-distance-m archive="y" type="double">-5.5</chase-distance-m>
+    <chase-distance-m archive="y" type="double">-10.5</chase-distance-m>
     <help>
-      <title>Hexarotor X</title>
+      <title>Quadrotor X</title>
       <line>Cruise speed: ? mph</line>
       <line>Never-exceed (Vne): ? mph</line>
       <line>Best Glide (Vglide): ? mph</line>
@@ -41,10 +42,12 @@ Hexarotor X UAV Model
       <line>Approach speed: ? mph</line>
       <line>Stall speed (Vs): ? mph</line>
     </help>
-    <startup>
-      <splash-title>Hexarotor X</splash-title>
-      <splash-texture>Aircraft/hexarotor_x/Previews/hexarotor_x_preview.jpg</splash-texture>
-    </startup>
+    <previews>
+        <preview>
+            <type>exterior</type>
+            <path>Previews/quadrotor_x_preview.jpg</path>
+        </preview>
+    </previews>
   </sim>
   <controls>
     <flight>

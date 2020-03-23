@@ -5,7 +5,7 @@
     <author>Matt Vacanti</author>
     <filecreationdate> 2020-01-04 </filecreationdate>
     <version>0.0 </version>
-    <description> Hexarotor X</description>
+    <description> Quadrotor X</description>
       <note>
         This model was created using publicly available data, publicly available
         technical reports, textbooks, testing, and guesses. It contains no proprietary or
@@ -30,17 +30,17 @@
     <location name="AERORP" unit="M">
       <x>   0.00 </x>
       <y>   0.00 </y>
-      <z>   0.0 </z>
+      <z>   0.345 </z>
     </location>
-    <location name="EYEPOINT" unit="IN">
+    <location name="EYEPOINT" unit="M">
       <x>  0.0 </x>
       <y>  0.0 </y>
-      <z>  0.0 </z>
+      <z>  0.345 </z>
     </location>
-    <location name="VRP" unit="IN">
+    <location name="VRP" unit="M">
       <x>0</x>
       <y>0</y>
-      <z>0</z>
+      <z>0.345</z>
     </location>
   </metrics>
   <mass_balance>
@@ -72,8 +72,8 @@
       </location>
       <static_friction>  5 </static_friction>
       <dynamic_friction> 5 </dynamic_friction>
-      <spring_coeff unit="N/M">820</spring_coeff>
-      <damping_coeff unit="N/M/SEC">280</damping_coeff>
+      <spring_coeff unit="N/M">220</spring_coeff>
+      <damping_coeff unit="N/M/SEC">60</damping_coeff>
     </contact>
     <contact type="STRUCTURE" name="rearbase">
       <location unit="M">
@@ -83,8 +83,8 @@
       </location>
       <static_friction>  5 </static_friction>
       <dynamic_friction> 5 </dynamic_friction>
-      <spring_coeff unit="N/M">820</spring_coeff>
-      <damping_coeff unit="N/M/SEC">280</damping_coeff>
+      <spring_coeff unit="N/M">220</spring_coeff>
+      <damping_coeff unit="N/M/SEC">60</damping_coeff>
     </contact>
     <contact type="STRUCTURE" name="leftbase">
       <location unit="M">
@@ -94,8 +94,8 @@
       </location>
       <static_friction>  5 </static_friction>
       <dynamic_friction> 5 </dynamic_friction>
-      <spring_coeff unit="N/M">820</spring_coeff>
-      <damping_coeff unit="N/M/SEC">280</damping_coeff>
+      <spring_coeff unit="N/M">220</spring_coeff>
+      <damping_coeff unit="N/M/SEC">60</damping_coeff>
     </contact>
     <contact type="STRUCTURE" name="rightbase">
       <location unit="M">
@@ -105,8 +105,8 @@
       </location>
       <static_friction>  5 </static_friction>
       <dynamic_friction> 5 </dynamic_friction>
-      <spring_coeff unit="N/M">820</spring_coeff>
-      <damping_coeff unit="N/M/SEC">280</damping_coeff>
+      <spring_coeff unit="N/M">220</spring_coeff>
+      <damping_coeff unit="N/M/SEC">60</damping_coeff>
     </contact>
   </ground_reactions>
   <!-- the front and rear motors spin clockwise, and the left and right motors spin counter-clockwise. -->
@@ -116,10 +116,6 @@
  <property value="0.0">fcs/esc-cmd-norm[1]</property>
  <property value="0.0">fcs/esc-cmd-norm[2]</property>
  <property value="0.0">fcs/esc-cmd-norm[3]</property>
- <property value="0.0">fcs/esc-cmd-norm[4]</property>
- <property value="0.0">fcs/esc-cmd-norm[5]</property>
-
-
 
  <channel name="Motor_0">
    <actuator name="fcs/etc/esc_0">
@@ -184,38 +180,6 @@
    <output>fcs/esc-out[3]</output>
   </actuator>
  </channel>
-
- <channel name="Motor_4">
-   <actuator name="fcs/etc/esc_4">
-   <input>fcs/esc-cmd-norm[4]</input>
-   <!-- lag> number </lag -->
-   <!-- rate_limit> number </rate_limit -->
-   <!-- bias> number </bias -->
-   <!-- deadband_width> number </deadband_width -->
-   <!-- hysteresis_width> number </hysteresis_width -->
-   <clipto>
-    <min>0.0</min>
-    <max>1.0</max>
-   </clipto>
-   <output>fcs/esc-out[4]</output>
-  </actuator>
- </channel>
-
-  <channel name="Motor_5">
-   <actuator name="fcs/etc/esc_5">
-   <input>fcs/esc-cmd-norm[5]</input>
-   <!-- lag> number </lag -->
-   <!-- rate_limit> number </rate_limit -->
-   <!-- bias> number </bias -->
-   <!-- deadband_width> number </deadband_width -->
-   <!-- hysteresis_width> number </hysteresis_width -->
-   <clipto>
-    <min>0.0</min>
-    <max>1.0</max>
-   </clipto>
-   <output>fcs/esc-out[5]</output>
-  </actuator>
- </channel>
 </system>
 
 <system name="torque-gen">
@@ -235,7 +199,7 @@
             </tableData>
         </table>
         <!--<value>-1</value> --> <!--Set to -1 clockwise, 1 counterclockwise, 0 to remove PX4 control outputs to JSBSim -->
-        <value>-1</value>
+        <value>1</value>
       </product>
      </function>
     <output>fcs/motor_torque[0]</output>
@@ -301,54 +265,10 @@
             </tableData>
         </table>
         <!--<value>1</value> --> <!--Set to -1 clockwise, 1 counterclockwise, 0 to remove PX4 control outputs to JSBSim -->
-        <value>1</value>
-      </product>
-     </function>
-    <output>fcs/motor_torque[3]</output>
-  </fcs_function>
-  </channel>
-
-  <property value="0.0">fcs/motor_torque[4]</property>
-  <channel name="Motor_4_Torque">
-  <fcs_function>
-      <function>
-      <product>
-        <table>
-            <independentVar>fcs/esc-out[4]</independentVar>
-            <tableData>
-              0.0   0.0
-              0.33  0.188
-              0.67  0.916
-              1.0   3.229
-            </tableData>
-        </table>
-        <!--<value>1</value> --> <!--Set to -1 clockwise, 1 counterclockwise, 0 to remove PX4 control outputs to JSBSim -->
-        <value>1</value>
-      </product>
-     </function>
-    <output>fcs/motor_torque[4]</output>
-  </fcs_function>
-  </channel>
-
-  <property value="0.0">fcs/motor_torque[5]</property>
-  <channel name="Motor_5_Torque">
-  <fcs_function>
-      <function>
-      <product>
-        <table>
-            <independentVar>fcs/esc-out[5]</independentVar>
-            <tableData>
-              0.0   0.0
-              0.33  0.188
-              0.67  0.916
-              1.0   3.229
-            </tableData>
-        </table>
-        <!--<value>-1</value> --> <!--Set to -1 clockwise, 1 counterclockwise, 0 to remove PX4 control outputs to JSBSim -->
         <value>-1</value>
       </product>
      </function>
-    <output>fcs/motor_torque[5]</output>
+    <output>fcs/motor_torque[3]</output>
   </fcs_function>
   </channel>
 
@@ -361,8 +281,6 @@
             <property>fcs/motor_torque[1]</property>
             <property>fcs/motor_torque[2]</property>
             <property>fcs/motor_torque[3]</property>
-            <property>fcs/motor_torque[4]</property>
-            <property>fcs/motor_torque[5]</property>
           </sum>
      </function>
     <output>fcs/net_torque</output>
@@ -378,17 +296,11 @@
      <property value="0.0">fcs/esc-out[1]</property>
      <property value="0.0">fcs/esc-out[2]</property>
      <property value="0.0">fcs/esc-out[3]</property>
-     <property value="0.0">fcs/esc-out[4]</property>
-     <property value="0.0">fcs/esc-out[5]</property>
 
      <property value="0.0">fcs/lift_bypass[0]</property>
      <property value="0.0">fcs/lift_bypass[1]</property>
      <property value="0.0">fcs/lift_bypass[2]</property>
      <property value="0.0">fcs/lift_bypass[3]</property>
-     <property value="0.0">fcs/lift_bypass[4]</property>
-     <property value="0.0">fcs/lift_bypass[5]</property>
-
-
 
       <force name="MOTOR_0_LIFT" frame="BODY">
         <function>
@@ -398,9 +310,11 @@
                 <independentVar>fcs/esc-out[0]</independentVar>
                 <tableData>
                   0.0   0.0
+                  <!--
                   0.33  1.348
                   0.67  5.46
-                  1.0   12.691
+                  -->
+                  1.0   6.691
                 </tableData>
             </table>
             <value>1</value> <!--Set to 0 remove PX4 control outputs to JSBSim -->
@@ -409,14 +323,14 @@
           </sum>
         </function>
         <location unit="M">
-          <x>   0.0 </x>
-          <y>   0.772 </y>
+          <x>  -0.54588 </x>
+          <y>   0.54588 </y>
           <z>   0.345 </z>
         </location>
         <direction>
           <x> 0.0 </x>
-          <y>-0.08749</y>
-          <z>-0.99619</z>
+          <y> 0.0 </y>
+          <z>-1.0 </z>
         </direction>
       </force>
 
@@ -428,9 +342,11 @@
                 <independentVar>fcs/esc-out[1]</independentVar>
                 <tableData>
                   0.0   0.0
+                  <!--
                   0.33  1.348
                   0.67  5.46
-                  1.0   12.691
+                  -->
+                  1.0   6.691
                 </tableData>
             </table>
             <value>1</value> <!--Set to 0 remove PX4 control outputs to JSBSim -->
@@ -439,14 +355,14 @@
           </sum>
         </function>
         <location unit="M">
-          <x>   0.0   </x>
-          <y>  -0.772 </y>
+          <x>   0.54588 </x>
+          <y>  -0.54588 </y>
           <z>   0.345 </z>
         </location>
         <direction>
           <x> 0.0 </x>
-          <y> 0.08749</y>
-          <z>-0.99619</z>
+          <y> 0.0 </y>
+          <z>-1.0 </z>
         </direction>
       </force>
 
@@ -458,9 +374,11 @@
                 <independentVar>fcs/esc-out[2]</independentVar>
                 <tableData>
                   0.0   0.0
+                  <!--
                   0.33  1.348
                   0.67  5.46
-                  1.0   12.691
+                  -->
+                  1.0   6.691
                 </tableData>
             </table>
             <value>1</value> <!--Set to 0 remove PX4 control outputs to JSBSim -->
@@ -469,14 +387,14 @@
           </sum>
         </function>
         <location unit="M">
-          <x>  -0.669</x>
-          <y>  -0.386 </y>
+          <x>  -0.54588 </x>
+          <y>  -0.54588 </y>
           <z>   0.345 </z>
         </location>
         <direction>
-          <x>-0.07577</x>
-          <y>0.04374</y>
-          <z>-0.99619</z>
+          <x> 0.0 </x>
+          <y> 0.0 </y>
+          <z>-1.0 </z>
         </direction>
       </force>
 
@@ -488,9 +406,11 @@
                 <independentVar>fcs/esc-out[3]</independentVar>
                 <tableData>
                   0.0   0.0
+                  <!--
                   0.33  1.348
                   0.67  5.46
-                  1.0   12.691
+                  -->
+                  1.0   6.691
                 </tableData>
             </table>
             <value>1</value> <!--Set to 0 remove PX4 control outputs to JSBSim -->
@@ -499,74 +419,14 @@
           </sum>
         </function>
         <location unit="M">
-          <x>   0.669 </x>
-          <y>   0.386 </y>
+          <x>   0.54588 </x>
+          <y>   0.54588 </y>
           <z>   0.345 </z>
         </location>
         <direction>
-          <x> 0.07577</x>
-          <y>-0.04374</y>
-          <z>-0.99619</z>
-        </direction>
-      </force>
-
-      <force name="MOTOR_4_LIFT" frame="BODY">
-        <function>
-          <sum>
-          <product>
-            <table>
-                <independentVar>fcs/esc-out[4]</independentVar>
-                <tableData>
-                  0.0   0.0
-                  0.33  1.348
-                  0.67  5.46
-                  1.0   12.691
-                </tableData>
-            </table>
-            <value>1</value> <!--Set to 0 remove PX4 control outputs to JSBSim -->
-          </product>
-          <property>fcs/lift_bypass[4]</property>
-          </sum>
-        </function>
-        <location unit="M">
-          <x>  -0.669 </x>
-          <y>   0.386 </y>
-          <z>   0.345 </z>
-        </location>
-        <direction>
-          <x>-0.07577</x>
-          <y>-0.04374</y>
-          <z>-0.99619</z>
-        </direction>
-      </force>
-
-      <force name="MOTOR_5_LIFT" frame="BODY">
-        <function>
-          <sum>
-          <product>
-            <table>
-                <independentVar>fcs/esc-out[5]</independentVar>
-                <tableData>
-                  0.0   0.0
-                  0.33  1.348
-                  0.67  5.46
-                  1.0   12.691
-                </tableData>
-            </table>
-            <value>1</value> <!--Set to 0 remove PX4 control outputs to JSBSim -->
-          </product>
-          <property>fcs/lift_bypass[5]</property>
-          </sum>
-        </function>
-        <location unit="M">
-          <x>   0.669 </x>
-          <y>  -0.386 </y>
-          <z>   0.345 </z>
-        </location>
-        <direction>
-          <x> 0.07577</x>
-          <y> 0.04374</y>
-          <z>-0.99619</z>
+          <x> 0.0 </x>
+          <y> 0.0 </y>
+          <z>-1.0 </z>
         </direction>
       </force>
 

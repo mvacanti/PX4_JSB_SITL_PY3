@@ -1,25 +1,30 @@
 #!/usr/bin/env python
-import pymavlink.mavutil as mavutil
-import os, sys, pexpect, socket, select, argparse, psutil
-import pexpect.fdpexpect as fdpexpect
+import argparse
+import pexpect
+import psutil
+import select
+import socket
+import sys
 import time
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.realpath(__file__)), 'modules'))
-
-import sensors, util, hexarotor
-
+import pexpect.fdpexpect as fdpexpect
+import pymavlink.mavutil as mavutil
+import modules.sensors as sensors
+import modules.util as util
+import modules.quadrotor as quadrotor
 import pymavlink.fgFDM as fgFDM
 
-class Simulator():
+
+class Simulator:
     @classmethod
     def command_line(cls):
-        ''' command line parser '''
+        # command line parser
         parser = argparse.ArgumentParser()
         parser.add_argument('--master', help='address used for UDP communication with PX4, e.g. 127.0.0.1:14560',
                             default='127.0.0.1:4560')
-        parser.add_argument('--script', help='relative path to jsbsim script', default='data/hexarotor_test.xml')
+        parser.add_argument('--script', help='relative path to jsbsim script', default='data/quadrotor_test.xml')
         parser.add_argument('--options', help='jsbsim options', default=None)
-        parser.add_argument('--fgout', help='address used for UDP communication with flightgear, e.g. 127.0.0.1:5503')  # 127.0.0.1:5550
+        parser.add_argument('--fgout', help='address used for UDP communication with flightgear, e.g. 127.0.0.1:5550')
         args = parser.parse_args()
 
         inst = cls(sitl_address=args.master, fgout=args.fgout, script=args.script, options=args.options)
@@ -31,7 +36,7 @@ class Simulator():
 
         self.Imu = sensors.Imu.default()
         self.Gps = sensors.Gps.default()
-        self.Controls = hexarotor.Controls.default()
+        self.Controls = quadrotor.Controls.default()
 
         self.script = script
         self.options = options
@@ -47,15 +52,10 @@ class Simulator():
                 proc.kill()
 
     def run(self):
-        # send something to simulator to get it running
-        # self.sitl = mavutil.mavudp(self.sitl_address, input=False)
         self.sitl = mavutil.mavlink_connection('tcpin:127.0.0.1:4560')
         self.sitl.wait_heartbeat()
         print("Heartbeat from system (system %u component %u)" % (self.sitl.target_system,
                                                                   self.sitl.target_system))
-
-        #self.sitl.write("hello")
-        # setup output to flightgear
 
         if self.fg_address is not None:
             fg_address = (self.fg_address.split(':')[0], int(self.fg_address.split(':')[1]))
@@ -67,11 +67,10 @@ class Simulator():
         util.pexpect_drain(self.jsb_console)
         self.jsb_console.send('resume\n')
         self.jsb_console.expect('Resuming')
-        #self.jsb_set('simulation/reset', 1)
         self.update()
-        # self.jsb.expect("\(Trim\) executed")
 
-        while self.update(): pass
+        while self.update():
+            pass
 
     def update(self):
         # watch files
@@ -88,7 +87,7 @@ class Simulator():
 
         if self.sitl.port.fileno() in rin:
             msg = self.sitl.recv_msg()
-            self.Controls = hexarotor.Controls.from_mavlink(msg)
+            self.Controls = quadrotor.Controls.from_mavlink(msg)
             self.Controls.send_to_jsbsim(self.jsb_console)
 
         if self.jsb_console.fileno() in rin:
@@ -103,21 +102,20 @@ class Simulator():
         buf = self.jsb_in.recv(self.fdm.packet_size())
         if len(buf) == 408:
             self.fdm.parse(buf)
-            self.Imu.from_state(hexarotor.State.from_fdm(self.fdm))
+            self.Imu.from_state(quadrotor.State.from_fdm(self.fdm))
             self.Imu.send_to_mav(self.sitl.mav)
-            self.Gps.from_state(hexarotor.State.from_fdm(self.fdm))
+            self.Gps.from_state(quadrotor.State.from_fdm(self.fdm))
             self.Gps.send_to_mav(self.sitl.mav)
             if self.fg_address is not None:
                 self.fg_out.send(self.fdm.pack())
 
-
     def init_JSBSim(self):
-        cmd = "JSBSim --realtime --nice  --suspend --simulation-rate=400  --script=%s --logdirectivefile=data/fgout.xml" % self.script
+        cmd = "JSBSim --realtime --nice  --suspend --simulation-rate=250  --script=%s --logdirectivefile=data/fgout.xml" % self.script
         jsb = pexpect.spawn(cmd, logfile=sys.stdout, timeout=10)
         jsb.delaybeforesend = 0
         util.pexpect_autoclose(jsb)
 
-        time.sleep(5)
+        time.sleep(10)
         """
         #print('Waiting for JSBSim')
         #jsb.expect("JSBSim startup beginning")
@@ -145,7 +143,7 @@ class Simulator():
         print("JSBSim FG FDM input on %s" % str(jsb_in_address))
         jsb_in = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         jsb_in.bind(jsb_in_address)
-        jsb_in.setblocking(0)
+        jsb_in.setblocking(False)
 
         # set class data
         self.jsb = jsb
